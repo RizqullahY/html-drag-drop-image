@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paste & Drag Image</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 50px; background: #f0f2f5; }
+        .container { text-align: center; border: 3px dashed #007bff; padding: 30px; background: white; border-radius: 15px; width: 400px; min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #preview { max-width: 100%; max-height: 300px; margin-top: 20px; border-radius: 8px; display: none; cursor: grab; border: 1px solid #ddd; }
+        #preview:active { cursor: grabbing; }
+        .instruction { color: #666; margin-bottom: 10px; }
+        .status { margin-top: 15px; font-size: 14px; color: #28a745; height: 20px; }
+        button { margin-top: 15px; padding: 8px 16px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="dropZone">
+    <div class="instruction">
+        <p>1. <b>Paste (Ctrl+V)</b></p>
+        <p>2. <b>Drag</b></p>
+    </div>
+    
+    <img id="preview" draggable="true">
+    
+    <button id="copyBtn">Copy Ulang Gambar</button>
+    <div id="status" class="status"></div>
+</div>
+
+<script>
+    const preview = document.getElementById('preview');
+    const status = document.getElementById('status');
+    const copyBtn = document.getElementById('copyBtn');
+
+    // 1. MENDENGARKAN EVENT PASTE
+    document.addEventListener('paste', async (event) => {
+        const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+        
+        for (let index in items) {
+            const item = items[index];
+            if (item.kind === 'file' && item.type.startsWith('image/')) {
+                const blob = item.getAsFile();
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    copyBtn.style.display = 'inline-block';
+                    status.textContent = "✅ Gambar berhasil ditempel!";
+                };
+                
+                reader.readAsDataURL(blob);
+            }
+        }
+    });
+
+    // 2. FITUR DRAG (Agar bisa ditarik ke Tab Lain)
+    preview.addEventListener('dragstart', (e) => {
+        // Menyediakan data URL gambar agar dikenali sebagai file saat di-drop
+        e.dataTransfer.setData('text/uri-list', preview.src);
+        e.dataTransfer.setData('text/plain', preview.src);
+        
+        // Metadata tambahan untuk membantu browser mengenali file
+        const name = "image-from-clipboard.png";
+        e.dataTransfer.setData('DownloadURL', `image/png:${name}:${preview.src}`);
+        
+        status.textContent = "🚀 Menarik gambar...";
+    });
+
+    preview.addEventListener('dragend', () => {
+        status.textContent = "✅ Selesai!";
+    });
+
+    // 3. FITUR COPY ULANG (Jika butuh copy manual lagi)
+    copyBtn.addEventListener('click', async () => {
+        try {
+            const response = await fetch(preview.src);
+            const blob = await response.blob();
+            const item = new ClipboardItem({ [blob.type]: blob });
+            await navigator.clipboard.write([item]);
+            status.textContent = "📋 Disalin ke clipboard!";
+        } catch (err) {
+            status.textContent = "❌ Gagal menyalin.";
+        }
+    });
+</script>
+
+</body>
+</html>
