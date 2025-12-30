@@ -89,6 +89,18 @@ button {
     font-size: 14px;
     height: 20px;
 }
+
+#deleteBtn {
+    margin-top: 10px;
+    padding: 8px 18px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    background: #dc3545;
+    color: #fff;
+    display: none;
+}
+
 </style>
 </head>
 
@@ -102,6 +114,7 @@ button {
 
     <img id="preview" draggable="true">
     <button id="copyBtn">Copy Ulang</button>
+    <button id="deleteBtn">Hapus Gambar</button>
     <div id="status" class="status"></div>
 </div>
 
@@ -110,6 +123,7 @@ const dropZone = document.getElementById('dropZone');
 const preview  = document.getElementById('preview');
 const status   = document.getElementById('status');
 const copyBtn  = document.getElementById('copyBtn');
+const deleteBtn = document.getElementById('deleteBtn'); // NEW
 
 /* ===============================
    UTIL
@@ -118,7 +132,16 @@ function showImage(src) {
     preview.src = src;
     preview.style.display = 'block';
     copyBtn.style.display = 'inline-block';
+    deleteBtn.style.display = 'inline-block'; // NEW
     status.textContent = "✅ Gambar siap digunakan";
+}
+
+function resetImage() { // NEW
+    preview.src = '';
+    preview.style.display = 'none';
+    copyBtn.style.display = 'none';
+    deleteBtn.style.display = 'none';
+    status.textContent = "🗑️ Gambar dihapus";
 }
 
 /* ===============================
@@ -137,7 +160,7 @@ document.addEventListener('paste', e => {
 });
 
 /* ===============================
-   DRAG MASUK (DROP KE DALAM)
+   DRAG & DROP
 ================================ */
 dropZone.addEventListener('dragover', e => {
     e.preventDefault();
@@ -161,7 +184,7 @@ dropZone.addEventListener('drop', e => {
 });
 
 /* ===============================
-   DRAG KELUAR (KE TAB / APP LAIN)
+   DRAG KELUAR
 ================================ */
 preview.addEventListener('dragstart', e => {
     e.dataTransfer.setData('text/uri-list', preview.src);
@@ -191,7 +214,13 @@ copyBtn.addEventListener('click', async () => {
         status.textContent = "❌ Gagal copy";
     }
 });
+
+/* ===============================
+   HAPUS GAMBAR
+================================ */
+deleteBtn.addEventListener('click', resetImage); // NEW
 </script>
+
 
 </body>
 </html>
